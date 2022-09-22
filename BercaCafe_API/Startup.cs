@@ -36,7 +36,11 @@ namespace BercaCafe_API
                 options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
             services.AddDbContext<BercaCafeContext>(options =>
             options.UseLazyLoadingProxies().UseSqlServer(Configuration.GetConnectionString("BercaCafe")));
+
+            // Add Scope for each Repository
             services.AddScoped<IReportEmployeeRepository, ReportEmployeeRepository>();
+            services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+
             services.AddCors(e =>
             {
 
