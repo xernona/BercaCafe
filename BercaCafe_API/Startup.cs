@@ -39,6 +39,7 @@ namespace BercaCafe_API
 
             // Add Scope for each Repository
             services.AddScoped<IReportEmployeeRepository, ReportEmployeeRepository>();
+            services.AddScoped<IReportDivisiRepository, ReportDivisiRepository>();
             services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 
             services.AddCors(e =>
