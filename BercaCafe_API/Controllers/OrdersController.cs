@@ -2,6 +2,9 @@
 using BercaCafe_API.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 
 namespace BercaCafe_API.Controllers
@@ -12,10 +15,25 @@ namespace BercaCafe_API.Controllers
     {
         private readonly IOrderRepository orderRepository;
         private readonly IEmployeeUserRepository employeeUserRepository;
-        public OrdersController(IOrderRepository repository, IEmployeeUserRepository empRepository)
+        private readonly IMenuRepository menuRepository;
+        private readonly ICompositionRepository compositionRepository;
+        private readonly ICompositionTypeRepository compositionTypeRepository;
+        private readonly IRefillRepository refillRepository;
+        public OrdersController(
+            IOrderRepository repository,
+            IEmployeeUserRepository empRepository,
+            IMenuRepository menuRepository,
+            ICompositionRepository compositionRepository,
+            ICompositionTypeRepository compositionTypeRepository,
+            IRefillRepository refillRepository
+            )
         {
             this.orderRepository = repository;
             this.employeeUserRepository = empRepository;
+            this.menuRepository = menuRepository;
+            this.compositionRepository = compositionRepository;
+            this.compositionTypeRepository = compositionTypeRepository;
+            this.refillRepository = refillRepository;
         }
 
         [HttpPost]
@@ -42,14 +60,85 @@ namespace BercaCafe_API.Controllers
                 }
                 else
                 {
-                    var transaction = orderRepository.ComposeOrder(emp, order);
-                    var result = orderRepository.PlaceOrder(transaction);
-                    return StatusCode(200, new
+                    try
                     {
-                        status = HttpStatusCode.OK,
-                        message = "Pesanan berhasil ditambahkan",
-                        result = result
-                    });
+                        var menu = menuRepository.GetMenuById(order.menuID);
+                        order.menuID = menu.MenuID;
+                        List<UpdateCompTypeVM> updateComps = new List<UpdateCompTypeVM>();
+                        var menuComposition = compositionRepository.GetByMenu(order.menuID);
+                        if (menuComposition.Count() != 0)
+                        {
+                            foreach (var comp in menuComposition)
+                            {
+                                UpdateCompTypeVM update = new UpdateCompTypeVM();
+                                update.CompTypeID = comp.CompTypeID;
+                                update.Quantity = comp.Quantity;
+                                updateComps.Add(update);
+                            }
+                            foreach (var compType in updateComps)
+                            {
+                                bool compositionIsInsufficient = InsufficientCompType(compType);
+                                if (compositionIsInsufficient)
+                                {
+                                    try
+                                    {
+                                        var refillMaterial = refillRepository.Get(compType.CompTypeID);
+                                        refillRepository.Decr(refillMaterial.MaterialsID);
+                                        refillRepository.Refill(refillMaterial.CompTypeID, refillMaterial.MaterialsQuantity);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        return StatusCode(500, new
+                                        {
+                                            StatusCode = HttpStatusCode.InternalServerError,
+                                            message = "Needed material stock in warehouse runs out",
+                                            exceptionMessage = ex.Message
+                                        });
+                                    }
+                                }
+                                else {
+                                }
+                            }
+                            foreach (var compTypeCompareFinal in updateComps)
+                            {
+                                bool compositionIsInsufficient = InsufficientCompType(compTypeCompareFinal);
+                                if (compositionIsInsufficient)
+                                {
+                                    return StatusCode(400, new
+                                    {
+                                        status = HttpStatusCode.BadRequest,
+                                        message = "Bahan baku tidak cukup"
+                                    });
+                                }
+                                else {
+                                }
+                            }
+                            foreach (var compTypeSubstract in updateComps)
+                            {
+                                compositionTypeRepository.SubstractCompositionType(compTypeSubstract);
+                            }
+                        }
+                        else {
+                        }
+                        // placing order
+                        var transaction = orderRepository.ComposeOrder(emp, order);
+                        var result = orderRepository.PlaceOrder(transaction);
+                        return StatusCode(200, new
+                        {
+                            status = HttpStatusCode.OK,
+                            message = "Pesanan berhasil ditambahkan",
+                            result = result
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        return StatusCode(400, new
+                        {
+                            status = HttpStatusCode.BadRequest,
+                            message = "Menu tidak ada",
+                            exception = ex.Message
+                        });
+                    }
                 }
             }
             catch
@@ -60,6 +149,11 @@ namespace BercaCafe_API.Controllers
                     message = "Kartu invalid"
                 });
             }
+        }
+        public bool InsufficientCompType (UpdateCompTypeVM compType)
+        {
+            var stock = compositionTypeRepository.Get(compType.CompTypeID);
+            return stock.TypeQuantity < compType.Quantity;
         }
     }
 }

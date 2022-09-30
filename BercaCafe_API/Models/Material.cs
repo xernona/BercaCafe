@@ -7,18 +7,13 @@ namespace BercaCafe_API.Models
 {
     public partial class Material
     {
-        public Material()
-        {
-            MaterialsLogs = new HashSet<MaterialsLog>();
-        }
-
         public int MaterialsId { get; set; }
-        public int CompTypeId { get; set; }
-        public string MaterialsName { get; set; }
-        public int Stock { get; set; }
-        public int Quantity { get; set; }
+        public int LogId { get; set; }
+        public int MaterialsStock { get; set; }
+        public int MaterialsQuantity { get; set; }
+        public DateTime InputDate { get; set; }
+        public int Flag { get; set; }
 
-        public virtual CompositionType CompType { get; set; }
-        public virtual ICollection<MaterialsLog> MaterialsLogs { get; set; }
+        public virtual MaterialsLog Log { get; set; }
     }
 }

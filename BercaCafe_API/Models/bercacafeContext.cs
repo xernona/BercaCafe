@@ -29,6 +29,7 @@ namespace BercaCafe_API.Models
         public virtual DbSet<MaterialsLog> MaterialsLogs { get; set; }
         public virtual DbSet<MsEmployee> MsEmployees { get; set; }
         public virtual DbSet<MsEmployeeBackup> MsEmployeeBackups { get; set; }
+        public virtual DbSet<MsMenuImageUrlNew> MsMenuImageUrlNews { get; set; }
         public virtual DbSet<MsUdc> MsUdcs { get; set; }
         public virtual DbSet<PsJob> PsJobs { get; set; }
         public virtual DbSet<ScAbsen> ScAbsens { get; set; }
@@ -96,6 +97,11 @@ namespace BercaCafe_API.Models
                 entity.ToTable("CompositionType");
 
                 entity.Property(e => e.CompTypeId).HasColumnName("CompTypeID");
+
+                entity.Property(e => e.CompUnit)
+                    .IsRequired()
+                    .HasMaxLength(10)
+                    .IsUnicode(false);
 
                 entity.Property(e => e.TypeName)
                     .IsRequired()
@@ -481,42 +487,48 @@ namespace BercaCafe_API.Models
             modelBuilder.Entity<Material>(entity =>
             {
                 entity.HasKey(e => e.MaterialsId)
-                    .HasName("PK__Material__394B877F1172EC7C");
+                    .HasName("PK__Material__394B877F7C115207");
 
                 entity.Property(e => e.MaterialsId).HasColumnName("MaterialsID");
 
-                entity.Property(e => e.CompTypeId).HasColumnName("CompTypeID");
+                entity.Property(e => e.InputDate).HasColumnType("date");
 
-                entity.Property(e => e.MaterialsName)
-                    .IsRequired()
-                    .HasMaxLength(100)
-                    .IsUnicode(false);
+                entity.Property(e => e.LogId).HasColumnName("LogID");
 
-                entity.HasOne(d => d.CompType)
+                entity.HasOne(d => d.Log)
                     .WithMany(p => p.Materials)
-                    .HasForeignKey(d => d.CompTypeId)
+                    .HasForeignKey(d => d.LogId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Materials__CompT__58DC1D15");
+                    .HasConstraintName("FK__Materials__LogID__2FA4FD58");
             });
 
             modelBuilder.Entity<MaterialsLog>(entity =>
             {
                 entity.HasKey(e => e.LogId)
-                    .HasName("PK__Material__5E5499A818C51873");
+                    .HasName("PK__Material__5E5499A8251E269B");
 
                 entity.ToTable("Materials_Log");
 
                 entity.Property(e => e.LogId).HasColumnName("LogID");
 
-                entity.Property(e => e.InputDate).HasColumnType("date");
+                entity.Property(e => e.CompTypeId).HasColumnName("CompTypeID");
 
-                entity.Property(e => e.MaterialsId).HasColumnName("MaterialsID");
+                entity.Property(e => e.InputDate).HasColumnType("datetime");
 
-                entity.HasOne(d => d.Materials)
+                entity.Property(e => e.MaterialsName)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.MaterialsUnit)
+                    .IsRequired()
+                    .HasMaxLength(10)
+                    .IsUnicode(false);
+
+                entity.HasOne(d => d.CompType)
                     .WithMany(p => p.MaterialsLogs)
-                    .HasForeignKey(d => d.MaterialsId)
+                    .HasForeignKey(d => d.CompTypeId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Materials__Mater__5BB889C0");
+                    .HasConstraintName("FK__Materials__CompT__2CC890AD");
             });
 
             modelBuilder.Entity<MsEmployee>(entity =>
@@ -581,6 +593,23 @@ namespace BercaCafe_API.Models
                     .HasColumnName("Hire_DT");
 
                 entity.Property(e => e.TerminationDt).HasColumnType("date");
+            });
+
+            modelBuilder.Entity<MsMenuImageUrlNew>(entity =>
+            {
+                entity.HasNoKey();
+
+                entity.ToTable("Ms_Menu_ImageURL_New");
+
+                entity.Property(e => e.LinkUrl).IsUnicode(false);
+
+                entity.Property(e => e.MenuId).HasColumnName("MenuID");
+
+                entity.HasOne(d => d.Menu)
+                    .WithMany()
+                    .HasForeignKey(d => d.MenuId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__Ms_Menu_I__MenuI__03C67B1A");
             });
 
             modelBuilder.Entity<MsUdc>(entity =>
