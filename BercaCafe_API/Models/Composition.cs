@@ -11,6 +11,7 @@ namespace BercaCafe_API.Models
         public int MenuId { get; set; }
         public int CompTypeId { get; set; }
         public int Quantity { get; set; }
+        public int MenuType { get; set; }
 
         public virtual CompositionType CompType { get; set; }
     }
