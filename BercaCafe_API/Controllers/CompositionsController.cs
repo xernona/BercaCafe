@@ -86,11 +86,11 @@ namespace BercaCafe_API.Controllers
             }
         }
 
-        [Route("menu/{menuID}")]
-        [HttpGet("menu/{menuID}")]
-        public ActionResult GetByMenu(int menuID)
+        [Route("menu/{menuID}/{typeMenu}")]
+        [HttpGet("menu/{menuID}/{typeMenu}")]
+        public ActionResult GetByMenu(int menuID, int typeMenu)
         {
-            var menuComposition = compositionRepository.GetByMenu(menuID);
+            var menuComposition = compositionRepository.GetByMenu(menuID, typeMenu);
             if(menuComposition.Count() != 0)
             {
                 return StatusCode(200, new

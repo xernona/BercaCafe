@@ -77,12 +77,13 @@ namespace BercaCafe_API.Repositories.Data
             }
         }
 
-        public IEnumerable<CompositionVm> GetByMenu(int menuID)
+        public IEnumerable<CompositionVm> GetByMenu(int menuID, int menuType)
         {
             using (SqlConnection connection = new SqlConnection(_configuration["ConnectionStrings:BercaCafe"])) //manggil object connection string dari file appsettings.json
             {
                 var spName = "spGetAllDataCompositionByMenuNew";
                 parameters.Add("@MenuID", menuID);
+                parameters.Add("@MenuType", menuType);
                 var menuComposition = connection.Query<CompositionVm>(spName, parameters, commandType: CommandType.StoredProcedure);
                 return menuComposition;
             }

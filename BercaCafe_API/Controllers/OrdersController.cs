@@ -65,7 +65,7 @@ namespace BercaCafe_API.Controllers
                         var menu = menuRepository.GetMenuById(order.menuID);
                         order.menuID = menu.MenuID;
                         List<UpdateCompTypeVM> updateComps = new List<UpdateCompTypeVM>();
-                        var menuComposition = compositionRepository.GetByMenu(order.menuID);
+                        var menuComposition = compositionRepository.GetByMenu(order.menuID, order.typeMenu);
                         if (menuComposition.Count() != 0)
                         {
                             foreach (var comp in menuComposition)
@@ -136,7 +136,7 @@ namespace BercaCafe_API.Controllers
                         {
                             status = HttpStatusCode.BadRequest,
                             message = "Menu tidak ada",
-                            exception = ex.Message
+                            exceptionMessage = ex.Message
                         });
                     }
                 }
