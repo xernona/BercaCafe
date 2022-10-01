@@ -75,6 +75,13 @@ namespace BercaCafe_API.Controllers
                                 update.Quantity = comp.Quantity;
                                 updateComps.Add(update);
                             }
+                            if(order.cupID == 2)
+                            {
+                                UpdateCompTypeVM cupType = new UpdateCompTypeVM();
+                                cupType.CompTypeID = 12;
+                                cupType.Quantity = 1;
+                                updateComps.Add(cupType);
+                            }
                             foreach (var compType in updateComps)
                             {
                                 bool compositionIsInsufficient = InsufficientCompType(compType);
